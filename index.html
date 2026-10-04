@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=15" />
   </head>
   <body>
     <div class="app">
@@ -70,7 +70,7 @@
       <h1 class="display" id="page-word">Devoirs</h1>
     </div>
 
-    <div id="sheet" class="sheet" hidden>
+    <div id="sheet" class="sheet" hidden style="display: none;">
       <div class="sheet-backdrop" data-close="sheet"></div>
       <form id="homework-form" class="sheet-panel" autocomplete="off">
         <button type="button" class="sheet-close" data-close="sheet">Fermer</button>
@@ -90,7 +90,7 @@
       </form>
     </div>
 
-    <div id="class-sheet" class="sheet" hidden>
+    <div id="class-sheet" class="sheet" hidden style="display: none;">
       <div class="sheet-backdrop" data-close="classes"></div>
       <div class="sheet-panel">
         <button type="button" class="sheet-close" data-close="classes">Fermer</button>
@@ -110,7 +110,7 @@
       </div>
     </div>
 
-    <div id="slot-sheet" class="sheet" hidden>
+    <div id="slot-sheet" class="sheet" hidden style="display: none;">
       <div class="sheet-backdrop" data-close="slot"></div>
       <form id="slot-form" class="sheet-panel" autocomplete="off">
         <button type="button" class="sheet-close" data-close="slot">Fermer</button>
@@ -148,11 +148,16 @@
       </form>
     </div>
 
-    <p id="toast" class="toast" role="status" hidden></p>
-    <script type="module" src="./js/app.js?v=14"></script>
+    <p id="toast" class="toast" role="status" hidden style="display: none;"></p>
+    <script type="module" src="./js/app.js?v=15"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=9', { updateViaCache: 'none' });
+        navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' }).then(function (reg) {
+          reg.update();
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          window.location.reload();
+        });
       }
     </script>
   </body>

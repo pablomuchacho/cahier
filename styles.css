@@ -814,13 +814,13 @@ button.brand,
   display: none !important;
 }
 
-.sheet:not([hidden]) {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
+.sheet.is-open {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
   display: flex !important;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: flex-end !important;
+  justify-content: center !important;
 }
 
 .sheet-backdrop {
@@ -829,6 +829,8 @@ button.brand,
   background: rgba(25, 24, 22, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .sheet-panel {
@@ -841,6 +843,7 @@ button.brand,
   border-radius: 20px 20px 0 0;
   padding: 24px 24px calc(28px + var(--safe-bottom));
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1;
 }
 
 .sheet-panel h2 {
@@ -854,10 +857,14 @@ button.brand,
   position: absolute;
   top: 18px;
   right: 18px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   background: var(--bg-card);
   border: 1px solid var(--line);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 2;
+  touch-action: manipulation;
 }
 
 .field, fieldset.field {

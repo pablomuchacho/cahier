@@ -422,11 +422,15 @@ function openSheet({ title, notes, classType } = {}) {
   state.pendingClassType = classType || state.settings.lastClassType;
   renderChoiceChips(els.classPicks, courseOptions(), 'classType', state.pendingClassType);
   els.sheet.hidden = false;
+  els.sheet.style.display = 'flex';
+  els.sheet.classList.add('is-open');
   els.notes.focus();
 }
 
 function closeSheet() {
   els.sheet.hidden = true;
+  els.sheet.style.display = 'none';
+  els.sheet.classList.remove('is-open');
   state.pendingClassType = null;
   els.form.reset();
 }
@@ -447,11 +451,15 @@ function openClassManager() {
   renderClassManager();
   els.className.value = '';
   els.classSheet.hidden = false;
+  els.classSheet.style.display = 'flex';
+  els.classSheet.classList.add('is-open');
   els.className.focus();
 }
 
 function closeClassManager() {
   els.classSheet.hidden = true;
+  els.classSheet.style.display = 'none';
+  els.classSheet.classList.remove('is-open');
   els.classForm.reset();
 }
 
@@ -473,11 +481,15 @@ function openSlotSheet(slot) {
   els.slotRoom.value = slot?.room || '';
   els.slotNotes.value = slot?.notes || '';
   els.slotSheet.hidden = false;
+  els.slotSheet.style.display = 'flex';
+  els.slotSheet.classList.add('is-open');
   els.slotStart.focus();
 }
 
 function closeSlotSheet() {
   els.slotSheet.hidden = true;
+  els.slotSheet.style.display = 'none';
+  els.slotSheet.classList.remove('is-open');
   state.editingSlotId = null;
   els.slotForm.reset();
 }
@@ -940,6 +952,36 @@ els.slotSheet.addEventListener('click', (event) => {
   if (event.target.closest('[data-close="slot"]')) closeSlotSheet();
 });
 
+// Explicit click bindings for close buttons and backdrops
+document.querySelectorAll('[data-close="sheet"]').forEach((el) => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeSheet();
+  });
+});
+
+document.querySelectorAll('[data-close="classes"]').forEach((el) => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeClassManager();
+  });
+});
+
+document.querySelectorAll('[data-close="slot"]').forEach((el) => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeSlotSheet();
+  });
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeSheet();
+    closeClassManager();
+    closeSlotSheet();
+  }
+});
+
 els.slotForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(els.slotForm);
@@ -976,5 +1018,10 @@ els.slotForm.addEventListener('submit', async (event) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.recording) stopRecording();
 });
+
+// S'assurer que toutes les modales sont bien fermées au démarrage
+closeSheet();
+closeClassManager();
+closeSlotSheet();
 
 refresh().catch(() => toast('Impossible de charger le cahier'));
