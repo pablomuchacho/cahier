@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f2ec" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Cahier" />
+    <title>Cahier</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icon-180.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="mast">
+        <p class="brand">Cahier.</p>
+        <nav class="tabs" aria-label="Sections">
+          <button type="button" data-tab="homework" class="active">Devoirs</button>
+          <button type="button" data-tab="planning">Planning</button>
+        </nav>
+      </header>
+
+      <div class="timeline">
+        <span>01</span>
+        <div class="timeline-track">
+          <div id="progress-bar" class="timeline-dot"></div>
+        </div>
+        <span>07</span>
+      </div>
+
+      <div class="week-bar">
+        <button type="button" id="prev-week">Précédent</button>
+        <button type="button" id="week-label" title="Revenir à cette semaine"></button>
+        <button type="button" id="next-week">Suivant</button>
+      </div>
+      <p id="today-hint" class="hint"></p>
+      <p id="progress-text" class="hint">Aucun devoir</p>
+
+      <div id="view-homework">
+        <div class="actions">
+          <button type="button" id="record" class="primary" aria-pressed="false">
+            <span id="record-label">Dicter un devoir</span>
+          </button>
+          <button type="button" id="add-text">Écrire un devoir</button>
+          <button type="button" id="manage-classes">Gérer les cours</button>
+        </div>
+        <p id="dictation-live" class="dictation-live" hidden aria-live="polite"></p>
+        <div class="filters" id="filters" aria-label="Cours"></div>
+        <main id="list" class="grid"></main>
+      </div>
+
+      <div id="view-planning" hidden>
+        <div class="actions">
+          <button type="button" id="add-slot" class="primary">Ajouter un horaire</button>
+          <button type="button" id="manage-classes-planning">Gérer les cours</button>
+        </div>
+        <div id="schedule" class="grid"></div>
+      </div>
+
+      <h1 class="display" id="page-word">Devoirs</h1>
+    </div>
+
+    <div id="sheet" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close="sheet"></div>
+      <form id="homework-form" class="sheet-panel" autocomplete="off">
+        <button type="button" class="sheet-close" data-close="sheet">Fermer</button>
+        <h2 id="sheet-title">Nouveau devoir</h2>
+        <label class="field">
+          <span>Consigne</span>
+          <textarea id="notes" rows="4" placeholder="Qu’est-ce qu’il faut travailler ?"></textarea>
+        </label>
+        <fieldset class="field">
+          <legend>Cours</legend>
+          <div id="class-picks" class="picks"></div>
+        </fieldset>
+        <div class="sheet-actions">
+          <button type="button" data-close="sheet">Annuler</button>
+          <button type="submit" class="primary">Enregistrer le devoir</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="class-sheet" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close="classes"></div>
+      <div class="sheet-panel">
+        <button type="button" class="sheet-close" data-close="classes">Fermer</button>
+        <h2>Cours</h2>
+        <p class="hint">Ces cours servent au planning et au classement des devoirs.</p>
+        <ul id="class-list" class="plain-list"></ul>
+        <form id="class-form" autocomplete="off">
+          <label class="field">
+            <span>Nouveau cours</span>
+            <input id="class-name" type="text" maxlength="40" placeholder="Ex. Arrangement" required />
+          </label>
+          <div class="sheet-actions">
+            <button type="button" data-close="classes">Fermer</button>
+            <button type="submit" class="primary">Ajouter le cours</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="slot-sheet" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close="slot"></div>
+      <form id="slot-form" class="sheet-panel" autocomplete="off">
+        <button type="button" class="sheet-close" data-close="slot">Fermer</button>
+        <h2 id="slot-title">Horaire</h2>
+        <fieldset class="field">
+          <legend>Jour</legend>
+          <div id="day-picks" class="picks"></div>
+        </fieldset>
+        <div class="field-row">
+          <label class="field">
+            <span>Début</span>
+            <input id="slot-start" type="time" required />
+          </label>
+          <label class="field">
+            <span>Fin</span>
+            <input id="slot-end" type="time" required />
+          </label>
+        </div>
+        <fieldset class="field">
+          <legend>Cours</legend>
+          <div id="slot-class-picks" class="picks"></div>
+        </fieldset>
+        <label class="field">
+          <span>Salle</span>
+          <input id="slot-room" type="text" maxlength="20" placeholder="Ex. 408" />
+        </label>
+        <label class="field">
+          <span>Prof / note</span>
+          <input id="slot-notes" type="text" maxlength="80" placeholder="Ex. Tamaé Gennai" />
+        </label>
+        <div class="sheet-actions">
+          <button type="button" data-close="slot">Annuler</button>
+          <button type="submit" class="primary" id="slot-submit">Ajouter l’horaire</button>
+        </div>
+      </form>
+    </div>
+
+    <p id="toast" class="toast" role="status" hidden></p>
+    <script type="module" src="./js/app.js?v=10"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js?v=5', { updateViaCache: 'none' });
+      }
+    </script>
+  </body>
+</html>
