@@ -1,9 +1,9 @@
-const CACHE = 'cahier-v5';
+const CACHE = 'cahier-v6';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
-  './js/app.js?v=10',
+  './js/app.js?v=11',
   './js/db.js?v=10',
   './js/app.js',
   './js/db.js',

@@ -493,6 +493,9 @@ async function removeClass(id) {
 }
 
 async function startRecording(classType) {
+  // #region agent log
+  fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H2',location:'js/app.js:496',message:'startRecording called',data:{hasSpeechRecognition:!!window.SpeechRecognition,hasWebkitSpeechRecognition:!!window.webkitSpeechRecognition,isSecureContext:window.isSecureContext,protocol:location.protocol,userAgent:navigator.userAgent},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     toast('Dictée indisponible — écris le devoir');
@@ -521,6 +524,9 @@ async function startRecording(classType) {
   recognition.maxAlternatives = 1;
 
   recognition.onresult = (event) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H4',location:'js/app.js:527',message:'recognition onresult',data:{resultsCount:event.results.length,firstText:event.results[0]?.[0]?.transcript,isFinal:event.results[0]?.isFinal},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     let finals = '';
     let interim = '';
     for (let i = 0; i < event.results.length; i += 1) {
@@ -535,6 +541,9 @@ async function startRecording(classType) {
   };
 
   recognition.onerror = (event) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H1',location:'js/app.js:544',message:'recognition error',data:{error:event.error,message:event.message},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (event.error === 'not-allowed') {
       state.recording = false;
       resetDictationUi();
@@ -543,15 +552,24 @@ async function startRecording(classType) {
   };
 
   recognition.onend = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H4',location:'js/app.js:556',message:'recognition onend',data:{recording:state.recording,transcript:state.transcript,sessionFinal:state.sessionFinal,interim:state.interim},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     commitSession();
     if (!state.recording) return;
     try { recognition.start(); } catch {}
   };
 
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H3',location:'js/app.js:567',message:'calling recognition.start()',data:{lang:recognition.lang,continuous:recognition.continuous},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     recognition.start();
     state.recognition = recognition;
-  } catch {
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H3',location:'js/app.js:573',message:'recognition.start threw exception',data:{errorName:err?.name,errorMessage:err?.message},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     state.recording = false;
     resetDictationUi();
     toast('Impossible de démarrer la dictée');
@@ -668,6 +686,9 @@ function cleanNotes(text, courseId, needle) {
 
 async function saveDictation() {
   const raw = `${state.transcript} ${state.sessionFinal} ${state.interim}`.replace(/\s+/g, ' ').trim();
+  // #region agent log
+  fetch('http://127.0.0.1:7655/ingest/8c1071c1-9766-4d0e-9113-a89ac6d59fc0',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f7c287'},body:JSON.stringify({sessionId:'f7c287',runId:'run1',hypothesisId:'H1',location:'js/app.js:688',message:'saveDictation evaluated raw speech',data:{rawLength:raw.length,rawText:raw},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   state.transcript = '';
   state.sessionFinal = '';
   state.interim = '';
