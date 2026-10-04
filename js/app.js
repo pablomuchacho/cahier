@@ -518,6 +518,12 @@ async function removeClass(id) {
 }
 
 async function startRecording(classType) {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    toast('Dictée vocale indisponible hors-ligne. Écris le devoir ci-dessous.');
+    openSheet({ title: 'Nouveau devoir', classType: classType || state.pendingClassType });
+    return;
+  }
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     toast('Dictée indisponible — écris le devoir');
@@ -563,7 +569,10 @@ async function startRecording(classType) {
     state.recording = false;
     resetDictationUi();
     if (event.error === 'not-allowed') {
-      toast('Autorise le micro dans Safari');
+      toast('Micro désactivé : autorise-le dans Safari');
+    } else if (event.error === 'network') {
+      toast('Réseau instable pour la voix. Saisie écrite ouverte.');
+      openSheet({ title: 'Nouveau devoir', classType: state.pendingClassType });
     } else if (event.error && event.error !== 'no-speech') {
       toast(`Dictée interrompue (${event.error})`);
     }
@@ -769,6 +778,22 @@ async function handleHomeworkAction(action, id) {
   }
 }
 
+function goHome() {
+  if (state.recording) stopRecording();
+  closeSheet();
+  closeClassManager();
+  closeSlotSheet();
+  state.filter = 'all';
+  state.weekStart = mondayOf(new Date());
+  setTab('homework');
+  refresh().catch(console.error);
+}
+
+const brandHome = document.getElementById('brand-home');
+if (brandHome) {
+  brandHome.addEventListener('click', goHome);
+}
+
 document.getElementById('prev-week').addEventListener('click', async () => {
   state.weekStart = addDays(state.weekStart, -7);
   await refresh();
@@ -781,6 +806,7 @@ document.getElementById('next-week').addEventListener('click', async () => {
 
 els.weekLabel.addEventListener('click', async () => {
   state.weekStart = mondayOf(new Date());
+  state.filter = 'all';
   await refresh();
 });
 
@@ -899,7 +925,15 @@ els.schedule.addEventListener('click', async (event) => {
 
 document.querySelector('.tabs').addEventListener('click', (event) => {
   const button = event.target.closest('[data-tab]');
-  if (button) setTab(button.dataset.tab);
+  if (!button) return;
+  const targetTab = button.dataset.tab;
+  if (targetTab === 'homework') {
+    if (state.tab === 'homework' && state.filter !== 'all') {
+      state.filter = 'all';
+      renderFilters();
+    }
+  }
+  setTab(targetTab);
 });
 
 els.slotSheet.addEventListener('click', (event) => {

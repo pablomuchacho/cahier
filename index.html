@@ -20,7 +20,7 @@
   <body>
     <div class="app">
       <header class="mast">
-        <p class="brand">Cahier.</p>
+        <button type="button" class="brand" id="brand-home" title="Accueil - Devoirs">Cahier.</button>
         <nav class="tabs" aria-label="Sections">
           <button type="button" data-tab="homework" class="active">Devoirs</button>
           <button type="button" data-tab="planning">Planning</button>
@@ -149,10 +149,10 @@
     </div>
 
     <p id="toast" class="toast" role="status" hidden></p>
-    <script type="module" src="./js/app.js?v=13"></script>
+    <script type="module" src="./js/app.js?v=14"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=8', { updateViaCache: 'none' });
+        navigator.serviceWorker.register('./sw.js?v=9', { updateViaCache: 'none' });
       }
     </script>
   </body>
