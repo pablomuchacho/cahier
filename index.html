@@ -36,16 +36,19 @@
       </div>
 
       <div class="week-bar">
-        <button type="button" id="prev-week">Précédent</button>
+        <button type="button" id="prev-week" aria-label="Semaine précédente">‹ Précédent</button>
         <button type="button" id="week-label" title="Revenir à cette semaine"></button>
-        <button type="button" id="next-week">Suivant</button>
+        <button type="button" id="next-week" aria-label="Semaine suivante">Suivant ›</button>
       </div>
-      <p id="today-hint" class="hint"></p>
-      <p id="progress-text" class="hint">Aucun devoir</p>
+      <div class="hint-bar">
+        <span id="today-hint" class="hint"></span>
+        <span id="progress-text" class="hint">Aucun devoir</span>
+      </div>
 
       <div id="view-homework">
         <div class="actions">
-          <button type="button" id="record" class="primary" aria-pressed="false">
+          <button type="button" id="record" aria-pressed="false">
+            <span class="mic-dot" aria-hidden="true"></span>
             <span id="record-label">Dicter un devoir</span>
           </button>
           <button type="button" id="add-text">Écrire un devoir</button>
@@ -146,10 +149,10 @@
     </div>
 
     <p id="toast" class="toast" role="status" hidden></p>
-    <script type="module" src="./js/app.js?v=12"></script>
+    <script type="module" src="./js/app.js?v=13"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=5', { updateViaCache: 'none' });
+        navigator.serviceWorker.register('./sw.js?v=8', { updateViaCache: 'none' });
       }
     </script>
   </body>

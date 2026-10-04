@@ -270,25 +270,29 @@ function renderFilters() {
 
 function homeworkActions(item) {
   const validate = item.status === 'done'
-    ? `<button type="button" data-action="todo" data-id="${item.id}">Remettre à faire</button>`
-    : `<button type="button" class="primary" data-action="done" data-id="${item.id}">Valider</button>`;
+    ? `<button type="button" class="btn-action btn-undo" data-action="todo" data-id="${item.id}">↺ Refaire</button>`
+    : `<button type="button" class="btn-action btn-validate" data-action="done" data-id="${item.id}">✓ Valider</button>`;
   const repeat = item.status === 'repeat'
     ? ''
-    : `<button type="button" data-action="repeat" data-id="${item.id}">À revoir</button>`;
+    : `<button type="button" class="btn-action btn-repeat" data-action="repeat" data-id="${item.id}">À revoir</button>`;
   return `
     ${validate}
     ${repeat}
-    <button type="button" data-action="next-week" data-id="${item.id}">Semaine suivante</button>
-    <button type="button" data-action="delete" data-id="${item.id}">Supprimer</button>`;
+    <button type="button" class="btn-action btn-postpone" data-action="next-week" data-id="${item.id}" title="Reporter à la semaine suivante">+7j</button>
+    <button type="button" class="btn-action btn-delete" data-action="delete" data-id="${item.id}" title="Supprimer">✕</button>`;
 }
 
 function homeworkCard(item) {
-  const repeats = item.repeatCount ? `<p class="meta">Répété ${item.repeatCount} fois</p>` : '';
+  const repeats = item.repeatCount ? `<span class="badge-repeat-count">Répété ${item.repeatCount}×</span>` : '';
+  const statusLabel = STATUS_LABELS[item.status] || item.status;
+  const statusSymbol = item.status === 'done' ? '✓' : item.status === 'repeat' ? '⟳' : '●';
   return `
-    <article class="item ${item.status}">
-      <h3>${STATUS_LABELS[item.status]}</h3>
-      <p>${escapeHtml(item.notes)}</p>
-      ${repeats}
+    <article class="item item-${item.status}">
+      <div class="item-head">
+        <span class="badge badge-${item.status}">${statusSymbol} ${statusLabel}</span>
+        ${repeats}
+      </div>
+      <p class="item-notes">${escapeHtml(item.notes)}</p>
       <div class="item-actions">${homeworkActions(item)}</div>
     </article>`;
 }
@@ -296,7 +300,7 @@ function homeworkCard(item) {
 function renderList() {
   const groups = coursesToShow();
   if (!groups.length) {
-    els.list.innerHTML = `<p class="empty">Aucun cours. Ajoute-en un avec « Gérer les cours ».</p>`;
+    els.list.innerHTML = `<p class="course-empty">Aucun cours actif. Ajoute-en un avec « Gérer les cours ».</p>`;
     return;
   }
 
@@ -307,19 +311,28 @@ function renderList() {
     const num = String(index + 1).padStart(2, '0');
     const cards = items.length
       ? items.map(homeworkCard).join('')
-      : `<p class="empty">Pas encore de devoir pour ce cours.</p>`;
+      : `<p class="course-empty">Aucun devoir à faire</p>`;
     return `
-      <article class="project">
-        <div class="project-visual" aria-hidden="true"></div>
-        <div class="project-head">
-          <p class="project-index">${num}.</p>
-          <div>
-            <h2>${escapeHtml(course.label)}</h2>
-            <p class="project-loc">${slot ? escapeHtml(slotLabel(slot)) : 'Pas dans le planning'} · ${done}/${items.length}</p>
+      <article class="course-card">
+        <div class="course-head">
+          <div class="course-info">
+            <span class="course-index">${num}</span>
+            <div>
+              <h2 class="course-title">${escapeHtml(course.label)}</h2>
+              <p class="course-meta">
+                ${slot ? `<span class="course-schedule">${escapeHtml(slotLabel(slot))}</span> · ` : ''}
+                <span class="course-counter">${done}/${items.length} validé${done > 1 ? 's' : ''}</span>
+              </p>
+            </div>
           </div>
+          <button type="button" class="btn-dictate-course" data-add-course="${course.id}" title="Dicter un devoir pour ${escapeHtml(course.label)}">
+            <span class="mic-dot" aria-hidden="true"></span>
+            <span>Dicter</span>
+          </button>
         </div>
-        ${cards}
-        <button type="button" data-add-course="${course.id}">Dicter pour ce cours</button>
+        <div class="course-body">
+          ${cards}
+        </div>
       </article>`;
   }).join('');
 }
@@ -330,6 +343,7 @@ function renderSchedule() {
 
   els.schedule.innerHTML = DAYS.map((day) => {
     const daySlots = slots.filter((slot) => String(slot.day) === day.id);
+    const isToday = Number(day.id) === today;
     const date = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
       fromKey(addDays(state.weekStart, Number(day.id)))
     );
@@ -338,32 +352,43 @@ function renderSchedule() {
         const related = state.items.filter((item) => item.classType === slot.classType);
         const homework = related.length
           ? `<ul class="slot-hw">${related.map((item) => `
-              <li class="${item.status}">
-                <span><strong>${STATUS_LABELS[item.status]}</strong> — ${escapeHtml(item.notes)}</span>
-                <span class="item-actions">${homeworkActions(item)}</span>
+              <li class="slot-hw-row slot-hw-${item.status}">
+                <div class="slot-hw-info">
+                  <span class="badge badge-${item.status}">${item.status === 'done' ? '✓' : '●'} ${STATUS_LABELS[item.status]}</span>
+                  <span class="slot-hw-note">${escapeHtml(item.notes)}</span>
+                </div>
+                <div class="item-actions">${homeworkActions(item)}</div>
               </li>`).join('')}</ul>`
-          : `<p class="empty">Aucun devoir cette semaine.</p>`;
+          : '';
         return `
           <article class="slot-row">
-            <p class="slot-time">${escapeHtml(slot.start)}–${escapeHtml(slot.end)}</p>
-            <div class="slot-main">
-              <h3>${escapeHtml(classLabel(slot.classType))}</h3>
-              <p>${slot.room ? `Salle ${escapeHtml(slot.room)}` : 'Salle non indiquée'}${slot.notes ? ` · ${escapeHtml(slot.notes)}` : ''}</p>
+            <div class="slot-top">
+              <span class="slot-time">${escapeHtml(slot.start)} – ${escapeHtml(slot.end)}</span>
+              <div class="slot-actions">
+                <button type="button" class="btn-action btn-add-hw" data-add-course="${slot.classType}">+ Devoir</button>
+                <button type="button" class="btn-action" data-slot-edit="${slot.id}">Modifier</button>
+                <button type="button" class="btn-action btn-delete" data-slot-delete="${slot.id}" title="Retirer l’horaire">✕</button>
+              </div>
             </div>
-            <div class="item-actions">
-              <button type="button" class="primary" data-add-course="${slot.classType}">Dicter un devoir</button>
-              <button type="button" data-slot-edit="${slot.id}">Modifier</button>
-              <button type="button" data-slot-delete="${slot.id}">Retirer</button>
+            <div class="slot-main">
+              <h3 class="slot-title">${escapeHtml(classLabel(slot.classType))}</h3>
+              <p class="slot-location">
+                ${slot.room ? `<span class="slot-tag">Salle ${escapeHtml(slot.room)}</span>` : ''}
+                ${slot.notes ? `<span class="slot-prof">${escapeHtml(slot.notes)}</span>` : ''}
+              </p>
             </div>
             ${homework}
           </article>`;
       }).join('')
-      : `<p class="empty">Libre</p>`;
+      : `<p class="empty-day">Aucun cours prévu</p>`;
 
     return `
-      <section class="day-row ${Number(day.id) === today ? 'today' : ''}">
-        <h2>${day.label}${Number(day.id) === today ? ' · aujourd’hui' : ''} <span>${date}</span></h2>
-        ${rows}
+      <section class="day-row ${isToday ? 'is-today' : ''}">
+        <div class="day-head">
+          <h2 class="day-title">${day.label} ${isToday ? '<span class="today-tag">Aujourd’hui</span>' : ''}</h2>
+          <span class="day-date">${date}</span>
+        </div>
+        <div class="day-slots">${rows}</div>
       </section>`;
   }).join('');
 }

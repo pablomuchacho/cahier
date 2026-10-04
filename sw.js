@@ -1,16 +1,15 @@
-const CACHE = 'cahier-v7';
+const CACHE = 'cahier-v8';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
-  './js/app.js?v=12',
+  './js/app.js?v=13',
   './js/db.js?v=10',
   './js/app.js',
   './js/db.js',
   './manifest.json',
   './icon.svg',
   './icon-180.png',
-  './images/hero.jpg',
 ];
 
 self.addEventListener('install', (event) => {
