@@ -263,7 +263,7 @@ function viewLogin() {
   });
   const submitBtn = el('button', {
     class: 'btn btn-primary',
-    type: 'submit',
+    type: 'button',
     text: 'Se connecter',
   });
 
@@ -281,9 +281,8 @@ function viewLogin() {
     submitBtn,
   ]);
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  async function doLogin(event) {
+    event?.preventDefault?.();
     errorBox.hidden = true;
     errorBox.textContent = '';
     submitBtn.disabled = true;
@@ -314,6 +313,12 @@ function viewLogin() {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Se connecter';
     }
+  }
+
+  form.addEventListener('submit', doLogin);
+  submitBtn.addEventListener('click', doLogin);
+  passInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') doLogin(event);
   });
 
   return form;
