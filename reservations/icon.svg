@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Dalcroze Réservations">
+  <rect width="128" height="128" rx="28" fill="#0F4C5C"/>
+  <rect x="28" y="30" width="72" height="68" rx="10" fill="#E8F1F3"/>
+  <rect x="28" y="30" width="72" height="16" rx="10" fill="#E36414"/>
+  <circle cx="44" cy="38" r="3" fill="#E8F1F3"/>
+  <circle cx="56" cy="38" r="3" fill="#E8F1F3"/>
+  <rect x="40" y="56" width="14" height="10" rx="2" fill="#0F4C5C" opacity="0.25"/>
+  <rect x="58" y="56" width="14" height="10" rx="2" fill="#0F4C5C"/>
+  <rect x="76" y="56" width="14" height="10" rx="2" fill="#0F4C5C" opacity="0.25"/>
+  <rect x="40" y="72" width="14" height="10" rx="2" fill="#0F4C5C" opacity="0.25"/>
+  <rect x="58" y="72" width="14" height="10" rx="2" fill="#E36414"/>
+</svg>
