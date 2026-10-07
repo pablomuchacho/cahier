@@ -734,6 +734,10 @@ body.is-login .main {
   padding: var(--space-3);
 }
 
+.conflict-box[hidden] {
+  display: none !important;
+}
+
 .suggest-list {
   display: grid;
   gap: var(--space-2);
