@@ -102,6 +102,7 @@ function setRoute(route) {
   } else {
     state.route = route;
   }
+  document.body.classList.toggle('is-login', state.route === 'login');
   document.querySelectorAll('[data-route]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.route === state.route);
   });
@@ -240,7 +241,33 @@ function render() {
 }
 
 function viewLogin() {
-  const form = el('form', { class: 'login-card stack', autocomplete: 'on' }, [
+  const errorBox = el('p', {
+    class: 'conflict-box',
+    hidden: true,
+    id: 'login-error',
+  });
+  const loginInput = el('input', {
+    name: 'login',
+    id: 'login-user',
+    required: true,
+    autocomplete: 'username',
+    placeholder: 'prenom.nom',
+  });
+  const passInput = el('input', {
+    name: 'password',
+    id: 'login-pass',
+    type: 'password',
+    required: true,
+    autocomplete: 'current-password',
+    placeholder: '••••••••',
+  });
+  const submitBtn = el('button', {
+    class: 'btn btn-primary',
+    type: 'submit',
+    text: 'Se connecter',
+  });
+
+  const form = el('form', { class: 'login-card stack', autocomplete: 'on', id: 'login-form' }, [
     el('h2', { text: 'Dalcroze' }),
     el('p', {
       class: 'muted',
@@ -248,46 +275,44 @@ function viewLogin() {
         ? 'Connecte-toi avec ton compte Mobilys (mweb.dalcroze.ch).'
         : 'Proxy hors-ligne — lance python3 proxy/mobilys_proxy.py puis recharge.',
     }),
-    el('label', { class: 'field' }, [
-      el('span', { text: 'Identifiant' }),
-      el('input', { name: 'login', required: true, autocomplete: 'username', placeholder: 'prenom.nom' }),
-    ]),
-    el('label', { class: 'field' }, [
-      el('span', { text: 'Mot de passe' }),
-      el('input', {
-        name: 'password',
-        type: 'password',
-        required: true,
-        autocomplete: 'current-password',
-        placeholder: '••••••••',
-      }),
-    ]),
-    el('button', { class: 'btn btn-primary', type: 'submit', text: 'Se connecter' }),
+    errorBox,
+    el('label', { class: 'field' }, [el('span', { text: 'Identifiant' }), loginInput]),
+    el('label', { class: 'field' }, [el('span', { text: 'Mot de passe' }), passInput]),
+    submitBtn,
   ]);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const data = new FormData(form);
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
+    event.stopPropagation();
+    errorBox.hidden = true;
+    errorBox.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Connexion…';
     try {
-      const res = await api.login(String(data.get('login')), String(data.get('password')));
+      const res = await api.login(loginInput.value.trim(), passInput.value);
       if (res.error) {
-        toast(res.message || 'Identifiants incorrects', 'error');
-        pushNotif('Connexion refusée', res.message || 'Identifiants incorrects');
+        const msg = res.message || 'Identifiants incorrects';
+        errorBox.hidden = false;
+        errorBox.textContent = msg;
+        toast(msg, 'error');
+        pushNotif('Connexion refusée', msg);
         return;
       }
       state.connected = true;
       const session = await api.session('reservations');
-      state.user = session?.infos || { login: String(data.get('login')) };
+      state.user = session?.infos || { login: loginInput.value.trim() };
       pushNotif('Connexion', 'Session Mobilys ouverte');
       toast('Connecté');
       await refreshData();
       setRoute('home');
     } catch (err) {
-      toast(err.message || 'Échec de connexion', 'error');
+      const msg = err.message || 'Échec de connexion';
+      errorBox.hidden = false;
+      errorBox.textContent = msg;
+      toast(msg, 'error');
     } finally {
-      btn.disabled = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Se connecter';
     }
   });
 

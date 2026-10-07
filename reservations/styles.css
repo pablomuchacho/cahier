@@ -210,6 +210,31 @@ a {
   place-items: center;
 }
 
+.badge[hidden] {
+  display: none !important;
+}
+
+body.is-login .sidebar,
+body.is-login .bottom-nav,
+body.is-login .sidebar-toggle,
+body.is-login #notif-btn {
+  display: none !important;
+}
+
+body.is-login .app {
+  grid-template-columns: 1fr;
+}
+
+body.is-login .shell {
+  padding-bottom: 0;
+}
+
+body.is-login .main {
+  max-width: 440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 .main {
   padding: var(--space-4);
   animation: fade 0.35s ease;
