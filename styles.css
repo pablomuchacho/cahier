@@ -678,60 +678,76 @@ button.brand,
   font-style: italic;
 }
 
-/* Slot Row / Card */
-.slot-row {
+/* Slot Card (2-step display: 1. Overview / 2. Details on tap) */
+.slot-card {
   background: #faf9f6;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.slot-top {
+.slot-card.is-expanded {
+  background: #ffffff;
+  border-color: #cfc8ba;
+  box-shadow: var(--shadow-md);
+}
+
+/* 1ère étape : En-tête / Résumé synthétique cliquable */
+.slot-summary {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background-color 0.12s ease;
+}
+
+.slot-summary:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.slot-summary:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.slot-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.slot-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .slot-time {
   display: inline-block;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--ink);
   background: var(--bg-card);
-  padding: 3px 8px;
+  padding: 2px 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font-variant-numeric: tabular-nums;
-}
-
-.slot-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.btn-add-hw {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
-  font-weight: 500;
-}
-
-.btn-add-hw:hover {
-  background: #333;
-}
-
-.slot-main {
-  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .slot-title {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--ink);
+  line-height: 1.3;
 }
 
 .slot-location {
@@ -740,15 +756,15 @@ button.brand,
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
 .slot-tag {
   background: var(--bg-card);
   border: 1px solid var(--line);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  border-radius: 4px;
   font-weight: 500;
   color: var(--ink-soft);
 }
@@ -757,42 +773,226 @@ button.brand,
   color: var(--muted);
 }
 
-/* Homework inside a slot */
-.slot-hw {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0;
-  border-top: 1px dashed var(--line);
-  padding-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.slot-hw-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-}
-
-.slot-hw-info {
+.slot-summary-side {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
-.slot-hw-note {
-  font-size: 0.88rem;
+/* Badge résumé devoirs dans l'en-tête */
+.slot-hw-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.slot-hw-pill.is-none {
+  background: var(--bg-subtle);
+  color: var(--muted);
+}
+
+.slot-hw-pill.is-pending {
+  background: var(--color-repeat-bg);
+  color: var(--color-repeat);
+  border: 1px solid var(--color-repeat-border);
+}
+
+.slot-hw-pill.is-done {
+  background: var(--color-done-bg);
+  color: var(--color-done);
+  border: 1px solid var(--color-done-border);
+}
+
+/* Chevron d'indication */
+.slot-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.15s ease;
+  transform-origin: center;
+}
+
+.slot-card.is-expanded .slot-chevron {
+  transform: rotate(90deg);
   color: var(--ink);
 }
 
-.slot-hw-done .slot-hw-note {
+/* 2ème étape : Volet détaillé des devoirs (déplié sur clic) */
+.slot-details {
+  border-top: 1px solid var(--line);
+  background: #faf8f4;
+  padding: 16px;
+  animation: slot-open 0.18s ease-out;
+}
+
+@keyframes slot-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slot-details-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.slot-details-title h4 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.slot-details-count {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.slot-details-quick-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-dictate-sm {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+}
+
+.btn-dictate-sm:hover {
+  background: #333;
+}
+
+.btn-write-sm {
+  background: var(--bg-card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+}
+
+.btn-write-sm:hover {
+  background: var(--bg-hover);
+  border-color: var(--ink);
+}
+
+/* Cartes individuelles des devoirs dans le créneau */
+.slot-hw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.slot-hw-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.slot-hw-card.item-done {
+  opacity: 0.82;
+  background: #fafaf8;
+}
+
+.slot-hw-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.slot-hw-text {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.slot-hw-card.item-done .slot-hw-text {
   text-decoration: line-through;
   color: var(--muted);
+}
+
+.slot-hw-empty {
+  padding: 18px 12px;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+}
+
+.slot-hw-empty p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Pied de carte : gestion d'horaire discrète */
+.slot-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.btn-subtle {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.btn-subtle:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.btn-danger-subtle:hover {
+  color: var(--color-danger);
+  text-decoration: underline;
 }
 
 /* Bottom decorative watermark */
@@ -1065,7 +1265,16 @@ textarea:focus, input[type="text"]:focus, input[type="time"]:focus {
     font-size: 1.2rem;
   }
 
+  .slot-card,
   .slot-row {
+    padding: 0;
+  }
+
+  .slot-summary {
+    padding: 10px 12px;
+  }
+
+  .slot-details {
     padding: 12px;
   }
 

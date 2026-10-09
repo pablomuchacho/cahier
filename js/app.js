@@ -47,6 +47,7 @@ const state = {
   interim: '',
   dictationSaved: false,
   objectUrls: [],
+  expandedSlotIds: new Set(),
 };
 
 const els = {
@@ -347,37 +348,94 @@ function renderSchedule() {
     const date = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
       fromKey(addDays(state.weekStart, Number(day.id)))
     );
+
     const rows = daySlots.length
       ? daySlots.map((slot) => {
+        const slotId = String(slot.id || `${slot.day}-${slot.start}-${slot.classType}`);
+        const isExpanded = state.expandedSlotIds.has(slotId);
         const related = state.items.filter((item) => item.classType === slot.classType);
-        const homework = related.length
-          ? `<ul class="slot-hw">${related.map((item) => `
-              <li class="slot-hw-row slot-hw-${item.status}">
-                <div class="slot-hw-info">
-                  <span class="badge badge-${item.status}">${item.status === 'done' ? '✓' : '●'} ${STATUS_LABELS[item.status]}</span>
-                  <span class="slot-hw-note">${escapeHtml(item.notes)}</span>
-                </div>
-                <div class="item-actions">${homeworkActions(item)}</div>
-              </li>`).join('')}</ul>`
-          : '';
-        return `
-          <article class="slot-row">
-            <div class="slot-top">
-              <span class="slot-time">${escapeHtml(slot.start)} – ${escapeHtml(slot.end)}</span>
-              <div class="slot-actions">
-                <button type="button" class="btn-action btn-add-hw" data-add-course="${slot.classType}">+ Devoir</button>
-                <button type="button" class="btn-action" data-slot-edit="${slot.id}">Modifier</button>
-                <button type="button" class="btn-action btn-delete" data-slot-delete="${slot.id}" title="Retirer l’horaire">✕</button>
+        const totalHw = related.length;
+        const doneHw = related.filter((item) => item.status === 'done').length;
+        const pendingHw = totalHw - doneHw;
+
+        let hwPill = '';
+        if (totalHw === 0) {
+          hwPill = `<span class="slot-hw-pill is-none">0 devoir</span>`;
+        } else if (pendingHw === 0) {
+          hwPill = `<span class="slot-hw-pill is-done">✓ ${totalHw} fait${totalHw > 1 ? 's' : ''}</span>`;
+        } else {
+          hwPill = `<span class="slot-hw-pill is-pending">● ${pendingHw} à faire</span>`;
+        }
+
+        const hwDetails = isExpanded ? `
+          <div class="slot-details">
+            <div class="slot-details-head">
+              <div class="slot-details-title">
+                <h4>Devoirs de ${escapeHtml(classLabel(slot.classType))}</h4>
+                <span class="slot-details-count">${totalHw} devoir${totalHw > 1 ? 's' : ''}${totalHw ? ` · ${doneHw} validé${doneHw > 1 ? 's' : ''}` : ''}</span>
+              </div>
+              <div class="slot-details-quick-actions">
+                <button type="button" class="btn-action btn-dictate-sm" data-add-course="${slot.classType}" title="Dicter un devoir pour ${escapeHtml(classLabel(slot.classType))}">
+                  <span class="mic-dot" aria-hidden="true"></span>
+                  <span>Dicter</span>
+                </button>
+                <button type="button" class="btn-action btn-write-sm" data-write-course="${slot.classType}" title="Écrire un devoir">
+                  + Écrire
+                </button>
               </div>
             </div>
-            <div class="slot-main">
-              <h3 class="slot-title">${escapeHtml(classLabel(slot.classType))}</h3>
-              <p class="slot-location">
-                ${slot.room ? `<span class="slot-tag">Salle ${escapeHtml(slot.room)}</span>` : ''}
-                ${slot.notes ? `<span class="slot-prof">${escapeHtml(slot.notes)}</span>` : ''}
-              </p>
+
+            ${totalHw ? `
+              <div class="slot-hw-list">
+                ${related.map((item) => `
+                  <div class="slot-hw-card item-${item.status}">
+                    <div class="slot-hw-top">
+                      <span class="badge badge-${item.status}">
+                        ${item.status === 'done' ? '✓' : item.status === 'repeat' ? '⟳' : '●'} ${STATUS_LABELS[item.status]}
+                      </span>
+                      ${item.repeatCount ? `<span class="badge-repeat-count">Répété ${item.repeatCount}×</span>` : ''}
+                    </div>
+                    <p class="slot-hw-text">${escapeHtml(item.notes)}</p>
+                    <div class="item-actions">${homeworkActions(item)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div class="slot-hw-empty">
+                <p>Aucun devoir enregistré pour ce cours cette semaine.</p>
+                <button type="button" class="btn-action btn-dictate-sm" data-add-course="${slot.classType}">
+                  <span class="mic-dot" aria-hidden="true"></span>
+                  <span>Dicter un devoir</span>
+                </button>
+              </div>
+            `}
+
+            <div class="slot-footer">
+              <button type="button" class="btn-subtle" data-slot-edit="${slot.id}">Modifier l’horaire</button>
+              <button type="button" class="btn-subtle btn-danger-subtle" data-slot-delete="${slot.id}">Retirer l’horaire</button>
             </div>
-            ${homework}
+          </div>
+        ` : '';
+
+        return `
+          <article class="slot-card ${isExpanded ? 'is-expanded' : ''}" data-slot-id="${escapeHtml(slotId)}">
+            <div class="slot-summary" role="button" tabindex="0" data-slot-toggle="${escapeHtml(slotId)}" aria-expanded="${isExpanded}" title="${isExpanded ? 'Masquer les devoirs' : 'Afficher les devoirs'}">
+              <div class="slot-summary-main">
+                <div class="slot-summary-top">
+                  <span class="slot-time">${escapeHtml(slot.start)} – ${escapeHtml(slot.end)}</span>
+                  <h3 class="slot-title">${escapeHtml(classLabel(slot.classType))}</h3>
+                </div>
+                <p class="slot-location">
+                  ${slot.room ? `<span class="slot-tag">Salle ${escapeHtml(slot.room)}</span>` : ''}
+                  ${slot.notes ? `<span class="slot-prof">${escapeHtml(slot.notes)}</span>` : ''}
+                </p>
+              </div>
+              <div class="slot-summary-side">
+                ${hwPill}
+                <span class="slot-chevron" aria-hidden="true">›</span>
+              </div>
+            </div>
+            ${hwDetails}
           </article>`;
       }).join('')
       : `<p class="empty-day">Aucun cours prévu</p>`;
@@ -796,6 +854,7 @@ function goHome() {
   closeClassManager();
   closeSlotSheet();
   state.filter = 'all';
+  state.expandedSlotIds.clear();
   state.weekStart = mondayOf(new Date());
   setTab('homework');
   refresh().catch(console.error);
@@ -918,6 +977,9 @@ els.list.addEventListener('click', onHomeworkClick);
 els.schedule.addEventListener('click', async (event) => {
   const edit = event.target.closest('[data-slot-edit]');
   const remove = event.target.closest('[data-slot-delete]');
+  const write = event.target.closest('[data-write-course]');
+  const toggle = event.target.closest('[data-slot-toggle]');
+
   if (edit) {
     const slot = state.slots.find((item) => item.id === edit.dataset.slotEdit);
     if (slot) openSlotSheet(slot);
@@ -928,11 +990,51 @@ els.schedule.addEventListener('click', async (event) => {
     if (!slot) return;
     if (!confirm(`Retirer ${classLabel(slot.classType)} le ${DAYS[slot.day].label} ?`)) return;
     await deleteSlot(slot.id);
+    state.expandedSlotIds.delete(slot.id);
     await refresh();
     toast('Horaire retiré');
     return;
   }
-  onHomeworkClick(event);
+  if (write) {
+    if (state.recording) stopRecording();
+    openSheet({ title: 'Nouveau devoir', classType: write.dataset.writeCourse });
+    return;
+  }
+
+  // Devoir actions (valider, répéter, reporter, supprimer, ou dicter)
+  const isHomeworkAction = event.target.closest('[data-action]') || event.target.closest('[data-add-course]');
+  if (isHomeworkAction) {
+    onHomeworkClick(event);
+    return;
+  }
+
+  // Clic sur l'en-tête du créneau pour afficher / masquer les devoirs (2e étape)
+  if (toggle) {
+    const slotId = toggle.dataset.slotToggle;
+    if (state.expandedSlotIds.has(slotId)) {
+      state.expandedSlotIds.delete(slotId);
+    } else {
+      state.expandedSlotIds.add(slotId);
+    }
+    renderSchedule();
+    return;
+  }
+});
+
+els.schedule.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    const toggle = event.target.closest('[data-slot-toggle]');
+    if (toggle && !event.target.closest('button, input, textarea')) {
+      event.preventDefault();
+      const slotId = toggle.dataset.slotToggle;
+      if (state.expandedSlotIds.has(slotId)) {
+        state.expandedSlotIds.delete(slotId);
+      } else {
+        state.expandedSlotIds.add(slotId);
+      }
+      renderSchedule();
+    }
+  }
 });
 
 document.querySelector('.tabs').addEventListener('click', (event) => {
